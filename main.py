@@ -28,9 +28,11 @@ HEIGHT = screen.get_height()
 xsprite = WIDTH / 2
 score = 0
 go = True
+delay_bullet = 0.125
 font = pygame.font.Font(None, 36)
 wave_size = 1
 score_text = font.render("Score: 0", True, "white")
+wav_tmp = 0
 
 zombies_img = [
     pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie1_1.png')), (0.25)),
@@ -51,11 +53,10 @@ def zombie_create():
     global zombies
     global last_spawn
     global wave_size
-
+    global wav_tmp
     y = 0
     for i in range(wave_size):
         r_type = random.randint(0, 5)
-        
         x = random.randint(0,WIDTH - zombies_img[r_type * 2].get_width() - WIDTH // 5)
 
         zombies.append({
@@ -66,11 +67,15 @@ def zombie_create():
             "type": r_type,
             "width": zombies_img[r_type * 2].get_width(),
             "height": zombies_img[r_type * 2].get_height(),
-
         })
     y += 1
+    wav_tmp += 0.125
+    print(f"[DEBUG] Création de {wave_size} zombies (wave_size = {wave_size})")
     if wave_size < 15:
-        wave_size += 1
+        if wav_tmp == 1:
+            print(f"[DEBUG] Augmentation de la taille de la vague (wave_size = {wave_size})")
+            wave_size += 1
+            wav_tmp = 0
 zombie_create()
 
 
@@ -143,7 +148,7 @@ while running:
         else:
             xsprite += 300 * dt
     if keys[pygame.K_SPACE]:
-        if time.time() - time_from_last_bullet > 0.025:
+        if time.time() - time_from_last_bullet > delay_bullet:
             time_from_last_bullet = time.time()
             bullet.append({
                 "frame": 0,
