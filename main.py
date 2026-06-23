@@ -62,15 +62,14 @@ def zombie_create():
     global zombies_to_spawn
     global last_zombie_spawn
     global e
-    # Nouvelle vague
+    # Nouvelle vague        
+    spawn_delay = max(0.002, 0.2 / (wave_size ** 0.7))
+
     if len(zombies) == 0 and zombies_to_spawn == 0:
-
         zombies_to_spawn = wave_size
-
         print(f"[DEBUG] Nouvelle vague : {wave_size} zombies")
 
         wav_tmp += 1
-
         if wave_size < 50 and wav_tmp >= 4:
             wav_tmp = 0
             e += 1
@@ -80,7 +79,7 @@ def zombie_create():
     # Spawn progressif
     if zombies_to_spawn > 0:
         if len(zombies) < 100:
-            if time.time() - last_zombie_spawn >= 0.2:
+            if time.time() - last_zombie_spawn >= spawn_delay:
                 last_zombie_spawn = time.time()
                 r_type = random.randint(0, 5)
                 x = random.randint(
@@ -123,6 +122,24 @@ bulletimages_large = [
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet3.png')), (0.2)),
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet4.png')), (0.2))
 ]
+
+# Bullet of plasma are in the folder guns/plasma:
+"""
+bas1    |  bas2    |  bas3      |  bas4
+milieu1 |  milieu2 |  milieu3   |  milieu4
+haut1b |  haut2    |  haut3     |  haut4"""
+
+
+bulletimages_plasma = []
+
+for i in range(1, 5):
+    bulletimages_plasma.append({
+        "top": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Haut_{i}.png").convert_alpha(), (0.2)),
+        "middle": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Milieu_{i}.png").convert_alpha(), (0.2)),
+        "bottom": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Bas_{i}.png").convert_alpha(), (0.2))
+    })
+
+
 bulletimages = bulletimages_small
 
 def split_frames(surface):
@@ -314,17 +331,36 @@ while running:
                 "x": xsprite,
                 "y": HEIGHT - sprite.get_height(),
                 "anim_time": 0,
-                "damage": current_damage
+                "damage": current_damage,
+                "weapon": current_weapon
             })
 
+
     for b in bullet[:]:
-        b["y"] -= 500 * dt
+        if b["weapon"] == 3:
+            b["y"] -= 750 * dt
+        else:
+            b["y"] -= 500 * dt
         b["anim_time"] += dt
-        if b["anim_time"] >= 0.1:
-            b["frame"] += 1
-            b["anim_time"] = 0
-        if b["frame"] >= len(bulletimages):
-            b["frame"] = 0
+
+        if b["weapon"] == 3:
+
+            if b["anim_time"] >= 0.08:
+                b["frame"] += 1
+                b["anim_time"] = 0
+
+            if b["frame"] >= 4:
+                b["frame"] = 0
+
+        else:
+
+            if b["anim_time"] >= 0.1:
+                b["frame"] += 1
+                b["anim_time"] = 0
+
+            if b["frame"] >= len(bulletimages):
+                b["frame"] = 0
+
         if b["y"] < 0:
             bullet.remove(b)
     
@@ -336,7 +372,6 @@ while running:
                 exp["anim_time"] = 0
             if exp["frame"] >= len(explosion):
                 explosions.remove(exp)
-
     if gun:
         for g in gun[:]:
             g["y"] += 100 * dt
@@ -345,7 +380,13 @@ while running:
 
     screen.blit(sprite, (xsprite, HEIGHT - sprite.get_height()))
     for b in bullet:
-        screen.blit(bulletimages[b["frame"]], (b["x"], b["y"]))
+        if b["weapon"] == 3:
+            frame = bulletimages_plasma[b["frame"]]
+            screen.blit(frame["top"],(b["x"], b["y"]))
+            screen.blit(frame["middle"],(b["x"], b["y"] + frame["top"].get_height()))
+            screen.blit(frame["bottom"],(b["x"],b["y"] + frame["top"].get_height() + frame["middle"].get_height()))
+        else:
+            screen.blit(  bulletimages[b["frame"]],(b["x"], b["y"]))
     for z in zombies:
         screen.blit(zombies_img[z["type"]*2 + z["frame"]], (z["x"], z["y"]))
     for g in gun:
@@ -357,7 +398,21 @@ while running:
     if bullet and zombies:
         for b in bullet[:]:
             for z in zombies[:]:
-                bullet_rect = pygame.Rect(b["x"], b["y"], bulletimages[b["frame"]].get_width(), bulletimages[b["frame"]].get_height())
+                if b["weapon"] == 3:
+                    frame = bulletimages_plasma[b["frame"]]
+
+                    width = frame["middle"].get_width()
+
+                    height = (
+                        frame["top"].get_height()
+                        + frame["middle"].get_height()
+                        + frame["bottom"].get_height()
+                    )
+                else:
+                    width = bulletimages[b["frame"]].get_width()
+                    height = bulletimages[b["frame"]].get_height()
+
+                bullet_rect = pygame.Rect(b["x"],b["y"],width,height)
                 zombie_rect = pygame.Rect(z["x"], z["y"], z["width"], z["height"])
                 if bullet_rect.colliderect(zombie_rect):
                     try:
@@ -398,24 +453,23 @@ while running:
                     if b in bullet:
                         bullet.remove(b)
                 if g["type"] == 0:
-                    current_damage = 10
-                    delay_bullet = 0.125   # M16
+                    current_damage = 25
+                    delay_bullet = 0.18   # M16
                     bulletimages = bulletimages_small
                     current_weapon = 0
                 elif g["type"] == 1:
-                    current_damage = 5
-                    delay_bullet = 0.05    # M249
+                    current_damage = 12
+                    delay_bullet = 0.08    # M249
                     bulletimages = bulletimages_small
                     current_weapon = 1
                 elif g["type"] == 2:
-                    current_damage = 75
-                    delay_bullet = 0.4     # RPG
+                    current_damage = 100
+                    delay_bullet = 1.5     # RPG
                     bulletimages = bulletimages_large
                     current_weapon = 2
                 elif g["type"] == 3:
-                    current_damage = 5
-                    delay_bullet = 0.02    # Plasma
-                    bulletimages = bulletimages_medium
+                    current_damage = 40
+                    delay_bullet = 0.35    # Plasma
                     current_weapon = 3
                 print(f"[DEBUG] Le joueur a ramassé une arme (type = {g['type']})")
 
