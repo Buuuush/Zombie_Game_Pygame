@@ -53,6 +53,7 @@ Zombies:
 - Spawn in waves
 - Have health points
 - Become increasingly numerous
+- Bosses
 - End the game if they:
   - Reach the bottom of the screen
   - Touch the player
@@ -130,8 +131,5 @@ python main.py
 ---
 
 ## 📋 Future Ideas
-
-- Boss zombies
-- More weapons
 - Sound effects
 - Music
