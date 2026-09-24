@@ -154,7 +154,6 @@ Planned features include:
 - [ ] Upgrade and progression system
 - [ ] Additional weapons
 - [ ] Improved visual effects
-- [ ] Multiple maps and environments
 - [ ] Better game balancing
 - [ ] More boss mechanics
 
