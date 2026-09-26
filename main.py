@@ -26,6 +26,7 @@ Hard
 import pygame
 import time
 import random
+import json
 
 #//* ===== Screen variables =====
 pygame.init()
@@ -46,6 +47,21 @@ import py_files.zombies as zombies_data
 import py_files.assets as assets
 
 
+with open("config/config.json") as f:
+    weapon_data = json.load(f)
+
+"""Index gun :
+0: M16
+1: M249
+2: RPG
+3: Plasma gun
+4: AK-47
+5: Flamethrower
+6: Freeze gun
+7: Grenade launcher
+8: Sniper
+"""
+
 #//* Run functions
 zombies_data.zombie_create()
 save.d()
@@ -55,6 +71,7 @@ def restart():
     player.bullet = []
     player.gun = []
     assets.explosions = []
+    assets.flames = []
     player.score = 0
     utils.xsprite = WIDTH / 2
     player.current_weapon = 0
@@ -70,6 +87,16 @@ def restart():
     utils.ice_bullets = False
     utils.burning_bullets = False
     utils.piercing_bullets = False
+    player.current_damage = weapon_data["0"]["current_damage"]
+    player.delay_bullet = weapon_data["0"]["delay_bullet"]
+    assets.bulletimages = assets.bulletimages_small
+    utils.radius_explosion = 0
+    utils.burn_damage = 0
+    utils.burnt_time = 0
+    utils.slow_factor = 1
+    utils.slow_time = 0
+    player.score = 0
+    utils.score_text = utils.font.render(f"Score: {player.score:.1f}", True, "white")
 
 while utils.running:
     # limits FPS to 60
@@ -80,9 +107,9 @@ while utils.running:
         if event.type == pygame.QUIT:
             utils.running = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                utils.pause = not utils.pause
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            utils.pause = not utils.pause
+            
     if utils.pause:
         text = utils.font.render("PAUSE", True, "white")
         screen.blit(text, (
@@ -110,64 +137,62 @@ while utils.running:
         zombies_data.last_spawn = time.time()
         zombies_data.zombie_create()
 
-    if zombies_data.zombies_to_spawn > 0:
-        if len(zombies_data.zombies) < 50:
-            if time.time() - zombies_data.last_zombie_spawn >= utils.spawn_delay:
-                zombies_data.last_zombie_spawn = time.time()
-                r_type = random.randint(0, 5)
-                x = random.randint(
-                    0,
-                    WIDTH - assets.zombies_img[r_type * 2].get_width() - WIDTH // 5
-                )
-                if zombies_data.nb_zombies % 50 == 0 and zombies_data.nb_zombies != 0:
+    if zombies_data.zombies_to_spawn > 0 and len(zombies_data.zombies) < 50 and time.time() - zombies_data.last_zombie_spawn >= utils.spawn_delay:
+        zombies_data.last_zombie_spawn = time.time()
+        r_type = random.randint(0, 5)
+        x = random.randint(
+            0,
+            WIDTH - assets.zombies_img[r_type * 2].get_width() - WIDTH // 5
+        )
+        if zombies_data.nb_zombies % 50 == 0 and zombies_data.nb_zombies != 0:
+            zombies_data.zombies.append({
+                "frame": 0,
+                "x": x,
+                "y": 0,
+                "anim_time": 0,
+                "type": r_type,
+                "width": assets.zombies_img[r_type * 2].get_width() * 2,
+                "height": assets.zombies_img[r_type * 2].get_height() * 2,
+                "hp": 300,
+                "boss": True,
+                "burn_time": 0,
+                "slow_time": 0,
+                "zombie_role": "boss"
+            })
+        else:
+            match r_type:
+                case 2:
                     zombies_data.zombies.append({
                         "frame": 0,
                         "x": x,
                         "y": 0,
                         "anim_time": 0,
                         "type": r_type,
-                        "width": assets.zombies_img[r_type * 2].get_width() * 2,
-                        "height": assets.zombies_img[r_type * 2].get_height() * 2,
-                        "hp": 300,
-                        "boss": True,
+                        "width": assets.zombies_img[r_type * 2].get_width(),
+                        "height": assets.zombies_img[r_type * 2].get_height(),
+                        "hp": 150,
+                        "boss": False,
                         "burn_time": 0,
                         "slow_time": 0,
-                        "zombie_role": "boss"
+                        "zombie_role": "hp"
                     })
-                else:
-                    match r_type:
-                        case 2:
-                            zombies_data.zombies.append({
-                                "frame": 0,
-                                "x": x,
-                                "y": 0,
-                                "anim_time": 0,
-                                "type": r_type,
-                                "width": assets.zombies_img[r_type * 2].get_width(),
-                                "height": assets.zombies_img[r_type * 2].get_height(),
-                                "hp": 150,
-                                "boss": False,
-                                "burn_time": 0,
-                                "slow_time": 0,
-                                "zombie_role": "hp"
-                            })
-                        case _:
-                            zombies_data.zombies.append({
-                                "frame": 0,
-                                "x": x,
-                                "y": 0,
-                                "anim_time": 0,
-                                "type": r_type,
-                                "width": assets.zombies_img[r_type * 2].get_width(),
-                                "height": assets.zombies_img[r_type * 2].get_height(),
-                                "hp": 100,
-                                "boss": False,
-                                "burn_time": 0,
-                                "slow_time": 0,
-                                "zombie_role": "basic"                                
-                            })
-                zombies_data.nb_zombies += 1
-                zombies_data.zombies_to_spawn -= 1
+                case _:
+                    zombies_data.zombies.append({
+                        "frame": 0,
+                        "x": x,
+                        "y": 0,
+                        "anim_time": 0,
+                        "type": r_type,
+                        "width": assets.zombies_img[r_type * 2].get_width(),
+                        "height": assets.zombies_img[r_type * 2].get_height(),
+                        "hp": 100,
+                        "boss": False,
+                        "burn_time": 0,
+                        "slow_time": 0,
+                        "zombie_role": "basic"                                
+                    })
+        zombies_data.nb_zombies += 1
+        zombies_data.zombies_to_spawn -= 1
 
     if zombies_data.zombies:
         
@@ -176,7 +201,7 @@ while utils.running:
             if z["boss"]:
                 speed = 25
             if z["slow_time"] > 0:
-                speed *= 0.5
+                speed *= utils.slow_factor
                 z["slow_time"] -= dt
 
             if z["zombie_role"] == "hp":
@@ -296,10 +321,7 @@ while utils.running:
         player.shoot(sprite.get_height())
 
     for b in player.bullet[:]:
-        if b["weapon"] == 3:
-            b["y"] -= 750 * dt
-        else:
-            b["y"] -= 500 * dt
+        b["y"] -= 750 * dt if b["weapon"] == 3 else 500 * dt
         b["anim_time"] += dt
         match b["weapon"]:
             case 3:
@@ -369,24 +391,20 @@ while utils.running:
         if z["boss"]:
             img = pygame.transform.scale_by(img, 2)
 
-        if z["burn_time"] > 0:
-
             # Red flashes when burning
-            if z["burn_time"] > 0 and int(time.time() * 10) % 2 == 0:
-                img = img.copy()
+        if z["burn_time"] > 0 and int(time.time() * 10) % 2 == 0:
+            img = img.copy()
 
-                img.fill(
-                    (255, 0, 0),
-                    special_flags=pygame.BLEND_RGB_ADD
-                )
+            img.fill(
+                (255, 0, 0),
+                special_flags=pygame.BLEND_RGB_ADD
+            )
 
         screen.blit(img, (z["x"], z["y"]))
-
         pygame.draw.rect(
             screen,
-            "red",
-            (z["x"], z["y"] + z["height"] + 5, z["width"], 5)
-        )
+            (90,0,0),
+            (z["x"], z["y"] + z["height"] + 5, z["width"], 5), border_radius=5)
         
         match z["zombie_role"]:
             case "hp": 
@@ -396,11 +414,10 @@ while utils.running:
 
             case _:
                 max_hp = 100
-            
         pygame.draw.rect(
-            screen,
-            "green",
-            (z["x"], z["y"] + z["height"] + 5, z["width"] * z["hp"] / max_hp, 5))
+                screen,
+                utils.get_color_hp(z["hp"],max_hp),
+                (z["x"], z["y"] + z["height"] + 5, z["width"] * z["hp"] / max_hp, 5), border_radius=5)
 
 
     for g in player.gun:
@@ -435,62 +452,59 @@ while utils.running:
                 bullet_rect = pygame.Rect(b["x"],b["y"],width,height)
                 zombie_rect = pygame.Rect(z["x"], z["y"], z["width"], z["height"])
                 if bullet_rect.colliderect(zombie_rect):
-                    try:
-                        if b["weapon"] == 8:
-                            if z in b["hit_zombies"]:
-                                continue
-                            b["hit_zombies"].append(z)
-                        z["hp"] -= b["damage"]
-                        if b["weapon"] == 6:
-                            z["slow_time"] = utils.slow_time
-                        if b["weapon"] == 5:
-                            if b["ttl"] > 0:
-                                z["burn_time"] = utils.burnt_time
-                                b["ttl"] -= 1
-                            else:
-                                player.bullet.remove(b)
-                                continue
-                        
-                        if b["weapon"] == 2 or b["weapon"] == 7:
-                            explosion_x = z["x"]
-                            explosion_y = z["y"]
-                            assets.explosions.append({
-                                "x": explosion_x,
-                                "y": explosion_y,
-                                "frame": 0,
-                                "anim_time": 0
-                            })
-                            for z2 in zombies_data.zombies[:]:
-                                dx = z2["x"] - explosion_x
-                                dy = z2["y"] - explosion_y
-                                distance = (dx * dx + dy * dy) ** 0.5
-                                if distance <= utils.radius_explosion:
-                                    z2["hp"] -= b["damage"]
-                                    if z2["hp"] <= 0:
-                                        player.check_bonus()
-                                        if z2["boss"]:
-                                            player.score += 25 * player.bonus[0]
-                                        else:
-                                            player.score += 1 * player.bonus[0]
-                                        if z2 in zombies_data.zombies:
-                                            zombies_data.zombies.remove(z2)
-                            if b in player.bullet:
-                                player.bullet.remove(b)
+                    if b["weapon"] == 8:
+                        if z in b["hit_zombies"]:
                             continue
-
-                        if z["hp"] <= 0:
-                            player.check_bonus()
-                            if z["boss"]:
-                                player.score += 25 * player.bonus[0]
-                            else:
-                                player.score += 1 * player.bonus[0]
-                            zombies_data.zombies.remove(z)
-                            continue 
-                        if b["weapon"] != 8 and b["weapon"] != 5:
+                        b["hit_zombies"].append(z)
+                    z["hp"] -= b["damage"]
+                    if b["weapon"] == 6:
+                        z["slow_time"] = utils.slow_time
+                    if b["weapon"] == 5:
+                        if b["ttl"] > 0:
+                            z["burn_time"] = utils.burnt_time
+                            b["ttl"] -= 1
+                        else:
                             player.bullet.remove(b)
+                            continue
+                    
+                    if b["weapon"] not in [2,7]:
+                        explosion_x = z["x"]
+                        explosion_y = z["y"]
+                        assets.explosions.append({
+                            "x": explosion_x,
+                            "y": explosion_y,
+                            "frame": 0,
+                            "anim_time": 0
+                        })
+                        for z2 in zombies_data.zombies[:]:
+                            dx = z2["x"] - explosion_x
+                            dy = z2["y"] - explosion_y
+                            distance = (dx * dx + dy * dy) ** 0.5
+                            if distance <= utils.radius_explosion:
+                                z2["hp"] -= b["damage"]
+                                if z2["hp"] <= 0:
+                                    player.check_bonus()
+                                    if z2["boss"]:
+                                        player.score += 25 * player.bonus[0]
+                                    else:
+                                        player.score += 1 * player.bonus[0]
+                                    if z2 in zombies_data.zombies:
+                                        zombies_data.zombies.remove(z2)
+                        if b in player.bullet:
+                            player.bullet.remove(b)
+                        continue
 
-                    except ValueError:
-                        pass
+                    if z["hp"] <= 0:
+                        player.check_bonus()
+                        if z["boss"]:
+                            player.score += 25 * player.bonus[0]
+                        else:
+                            player.score += 1 * player.bonus[0]
+                        zombies_data.zombies.remove(z)
+                        continue 
+                    if b["weapon"] not in [5,8]:
+                        player.bullet.remove(b)
+                            
     # if gun collides with player, the player get the gun and it despawn
     if player.gun:
         for g in player.gun[:]:
@@ -500,61 +514,25 @@ while utils.running:
                 for b in player.bullet[:]:
                     if b in player.bullet:
                         player.bullet.remove(b)
-                match g["type"]:
-                    case 0:
-                        player.current_damage = 22
-                        player.delay_bullet = 0.16   # M16
-                        assets.bulletimages = assets.bulletimages_small
-                        player.current_weapon = 0
-                    case 1:
-                        player.current_damage = 14
-                        player.delay_bullet = 0.07    # M249
-                        assets.bulletimages = assets.bulletimages_small
-                        player.current_weapon = 1
-                    case 2:
-                        player.current_damage = 95
-                        player.delay_bullet = 1.4     # RPG
-                        assets.bulletimages = assets.bulletimages_large
-                        player.current_weapon = 2
-                        utils.radius_explosion = 120
-                    case 3:
-                        player.current_damage = 35
-                        player.delay_bullet = 0.32    # Plasma
-                        player.current_weapon = 3
-                    case 4:
-                        player.current_damage = 20
-                        player.delay_bullet = 0.11     # AK-47
-                        assets.bulletimages = assets.bulletimages_small
-                        player.current_weapon = 4
-                    case 5:
-                        player.current_damage = 2
-                        player.delay_bullet = 0.05     # Flamethrower
-                        assets.bulletimages = assets.bulletimages_large
-                        player.current_weapon = 5
-                        utils.burning_bullets = True
-                        utils.burn_damage = 10
-                        utils.burnt_time = 3
-                        utils.piercing_bullets = True
-                    case 6:
-                        player.current_damage = 16
-                        player.delay_bullet = 0.1     # Freeze gun
-                        assets.bulletimages = assets.bulletimages_medium
-                        player.current_weapon = 6
-                        utils.ice_bullets = True
-                        utils.slow_factor = 0.5
-                        utils.slow_time = 2
-                    case 7:
-                        player.current_damage = 65
-                        player.delay_bullet = 0.65    # Grenade launcher
-                        assets.bulletimages = assets.bulletimages_large
-                        player.current_weapon = 7
-                        utils.radius_explosion = 90
-                    case 8:
-                        player.current_damage = 300
-                        player.delay_bullet = 1.2     # Sniper
-                        assets.bulletimages = assets.bulletimages_medium
-                        player.current_weapon = 8
-                        utils.piercing_bullets = True
+                cfg = weapon_data[str(g["type"])]
+
+                player.current_damage = cfg["current_damage"]
+                player.delay_bullet = cfg["delay_bullet"]
+                player.current_weapon = g["type"]
+                if cfg["bulletimage"] == "bulletimages_small":
+                    assets.bulletimages = assets.bulletimages_small
+                elif cfg["bulletimage"] == "bulletimages_medium":
+                    assets.bulletimages = assets.bulletimages_medium
+                elif cfg["bulletimage"] == "bulletimages_large":
+                    assets.bulletimages = assets.bulletimages_large
+                utils.radius_explosion = cfg["radius_explosion"]
+                utils.burn_damage = cfg["burn_damage"]
+                utils.burnt_time = cfg["burnt_time"]
+                utils.burning_bullets = cfg["burning_bullets"]
+                utils.piercing_bullets = cfg["piercing_bullet"]
+                utils.ice_bullets = cfg["ice_bullet"]
+                utils.slow_factor = cfg["slow_factor"]
+                utils.slow_time = cfg["slow_time"]
                 print(f"[DEBUG] Le joueur a ramassé une arme (type = {g['type']})")
 
     for fl in assets.flames:

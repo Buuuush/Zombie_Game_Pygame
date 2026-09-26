@@ -1,6 +1,4 @@
 import pygame
-import time
-import random
 
 #//* ===== Screen variables =====
 WIDTH = 400
@@ -27,3 +25,11 @@ font = pygame.font.Font(None, 36)
 score_text = font.render("Score: 0", True, "white")
 pause = False
 running = True
+
+def get_color_hp(hp, max):
+    if hp > (max/3)*2:
+        return "green"
+    elif hp > max/3:
+        return "orange"
+    else:
+        return "red"
