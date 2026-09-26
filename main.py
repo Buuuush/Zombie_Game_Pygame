@@ -452,58 +452,62 @@ while utils.running:
                 bullet_rect = pygame.Rect(b["x"],b["y"],width,height)
                 zombie_rect = pygame.Rect(z["x"], z["y"], z["width"], z["height"])
                 if bullet_rect.colliderect(zombie_rect):
-                    if b["weapon"] == 8:
-                        if z in b["hit_zombies"]:
+                    try:
+                        if b["weapon"] == 8:
+                            if z in b["hit_zombies"]:
+                                continue
+                            b["hit_zombies"].append(z)
+                        z["hp"] -= b["damage"]
+                        if b["weapon"] == 6:
+                            z["slow_time"] = utils.slow_time
+                        if b["weapon"] == 5:
+                            if b["ttl"] > 0:
+                                z["burn_time"] = utils.burnt_time
+                                b["ttl"] -= 1
+                            else:
+                                player.bullet.remove(b)
+                                continue
+                        
+                        if b["weapon"] in [2,7]:
+                            explosion_x = z["x"]
+                            explosion_y = z["y"]
+                            assets.explosions.append({
+                                "x": explosion_x,
+                                "y": explosion_y,
+                                "frame": 0,
+                                "anim_time": 0
+                            })
+                            for z2 in zombies_data.zombies[:]:
+                                dx = z2["x"] - explosion_x
+                                dy = z2["y"] - explosion_y
+                                distance = (dx * dx + dy * dy) ** 0.5
+                                if distance <= utils.radius_explosion:
+                                    z2["hp"] -= b["damage"]
+                                    if z2["hp"] <= 0:
+                                        player.check_bonus()
+                                        if z2["boss"]:
+                                            player.score += 25 * player.bonus[0]
+                                        else:
+                                            player.score += 1 * player.bonus[0]
+                                        if z2 in zombies_data.zombies:
+                                            zombies_data.zombies.remove(z2)
+                            if b in player.bullet:
+                                player.bullet.remove(b)
                             continue
-                        b["hit_zombies"].append(z)
-                    z["hp"] -= b["damage"]
-                    if b["weapon"] == 6:
-                        z["slow_time"] = utils.slow_time
-                    if b["weapon"] == 5:
-                        if b["ttl"] > 0:
-                            z["burn_time"] = utils.burnt_time
-                            b["ttl"] -= 1
-                        else:
-                            player.bullet.remove(b)
-                            continue
-                    
-                    if b["weapon"] not in [2,7]:
-                        explosion_x = z["x"]
-                        explosion_y = z["y"]
-                        assets.explosions.append({
-                            "x": explosion_x,
-                            "y": explosion_y,
-                            "frame": 0,
-                            "anim_time": 0
-                        })
-                        for z2 in zombies_data.zombies[:]:
-                            dx = z2["x"] - explosion_x
-                            dy = z2["y"] - explosion_y
-                            distance = (dx * dx + dy * dy) ** 0.5
-                            if distance <= utils.radius_explosion:
-                                z2["hp"] -= b["damage"]
-                                if z2["hp"] <= 0:
-                                    player.check_bonus()
-                                    if z2["boss"]:
-                                        player.score += 25 * player.bonus[0]
-                                    else:
-                                        player.score += 1 * player.bonus[0]
-                                    if z2 in zombies_data.zombies:
-                                        zombies_data.zombies.remove(z2)
-                        if b in player.bullet:
-                            player.bullet.remove(b)
-                        continue
 
-                    if z["hp"] <= 0:
-                        player.check_bonus()
-                        if z["boss"]:
-                            player.score += 25 * player.bonus[0]
-                        else:
-                            player.score += 1 * player.bonus[0]
-                        zombies_data.zombies.remove(z)
-                        continue 
-                    if b["weapon"] not in [5,8]:
-                        player.bullet.remove(b)
+                        if z["hp"] <= 0:
+                            player.check_bonus()
+                            if z["boss"]:
+                                player.score += 25 * player.bonus[0]
+                            else:
+                                player.score += 1 * player.bonus[0]
+                            zombies_data.zombies.remove(z)
+                            continue 
+                        if b["weapon"] not in [5,8]:
+                            player.bullet.remove(b)
+                            
+                    except ValueError:
+                        pass
                             
     # if gun collides with player, the player get the gun and it despawn
     if player.gun:
