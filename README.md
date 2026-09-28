@@ -180,11 +180,11 @@ Planned features include:
 - [x] More maintenable code (don't look at the old code ^^)
 - [ ] Sound effects
 - [ ] Background music
-- [ ] Additional zombie classes (runner, tank, healer)
+- [x] Additional zombie classes (runner, tank, healer)
 - [ ] Upgrade and progression system
 - [ ] Additional weapons
 - [ ] Improved visual effects (screen shake, blood particles, smoke)
-- [ ] Better game balancing
+- [x] Better game balancing (impossibles waves now hehe)
 - [ ] More boss mechanics
 
 ## Author

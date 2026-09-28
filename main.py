@@ -161,6 +161,24 @@ while utils.running:
             })
         else:
             match r_type:
+                case 1:
+                    zombies_data.zombies.append({
+                        "frame": 0,
+                        "x": x,
+                        "y": 0,
+                        "anim_time": 0,
+                        "type": r_type,
+                        "width": assets.zombies_img[r_type * 2].get_width(),
+                        "height": assets.zombies_img[r_type * 2].get_height(),
+                        "hp": 100,
+                        "boss": False,
+                        "burn_time": 0,
+                        "slow_time": 0,
+                        "zombie_role": "healer",
+                        "radius_heal": 100,
+                        "last_heal_time": time.time(),
+                        "max_hp": 100
+                    })
                 case 2:
                     zombies_data.zombies.append({
                         "frame": 0,
@@ -174,7 +192,24 @@ while utils.running:
                         "boss": False,
                         "burn_time": 0,
                         "slow_time": 0,
-                        "zombie_role": "hp"
+                        "zombie_role": "hp",
+                        "max_hp": 150
+                    })
+                case 5:
+                    zombies_data.zombies.append({
+                        "frame": 0,
+                        "x": x,
+                        "y": 0,
+                        "anim_time": 0,
+                        "type": r_type,
+                        "width": assets.zombies_img[r_type * 2].get_width(),
+                        "height": assets.zombies_img[r_type * 2].get_height(),
+                        "hp": 60,
+                        "boss": False,
+                        "burn_time": 0,
+                        "slow_time": 0,
+                        "zombie_role": "fast",
+                        "max_hp": 60
                     })
                 case _:
                     zombies_data.zombies.append({
@@ -189,7 +224,8 @@ while utils.running:
                         "boss": False,
                         "burn_time": 0,
                         "slow_time": 0,
-                        "zombie_role": "basic"                                
+                        "zombie_role": "basic",
+                        "max_hp": 100
                     })
         zombies_data.nb_zombies += 1
         zombies_data.zombies_to_spawn -= 1
@@ -207,17 +243,14 @@ while utils.running:
             if z["zombie_role"] == "hp":
                 z["y"] += speed * dt * 2/3
             else:
-                z["y"] += speed * dt
+                z["y"] += speed * dt * 2 if z["zombie_role"] == "fast" else speed * dt
 
             if z["burn_time"] > 0:
                 z["hp"] -= utils.burn_damage * dt
                 z["burn_time"] -= dt
                 if z["hp"] <= 0:
                     player.check_bonus()
-                    if z["boss"]:
-                        player.score += 25 * player.bonus[0]
-                    else:
-                        player.score += 1 * player.bonus[0]
+                    player.score += 25 * player.bonus[0] if z["boss"] else player.bonus[0]
                     zombies_data.zombies.remove(z)
 
             # if zombies go bottom or touch the player, end of the game            
@@ -391,16 +424,41 @@ while utils.running:
         if z["boss"]:
             img = pygame.transform.scale_by(img, 2)
 
-            # Red flashes when burning
+        # Red, lite blue, lite yellow, green flashes when burning, frozing, running, healing
         if z["burn_time"] > 0 and int(time.time() * 10) % 2 == 0:
             img = img.copy()
 
             img.fill(
-                (255, 0, 0),
+                (189, 64, 64, 50),
+                special_flags=pygame.BLEND_RGB_ADD
+            )
+
+        if z["slow_time"] > 0 and int(time.time() * 10) % 2 == 0:
+            img = img.copy()
+
+            img.fill(
+                (152, 214, 235, 50),
+                special_flags=pygame.BLEND_RGB_ADD
+            )
+
+        if z["zombie_role"] == "fast" and int(time.time() * 10) % 2 == 1:
+            img = img.copy()
+
+            img.fill(
+                (219, 212, 103, 50),
+                special_flags=pygame.BLEND_RGB_ADD
+            )
+
+        if z["zombie_role"] == "healer" and int(time.time() * 10) % 2 == 1:
+            img = img.copy()
+
+            img.fill(
+                (40, 189, 84, 50),
                 special_flags=pygame.BLEND_RGB_ADD
             )
 
         screen.blit(img, (z["x"], z["y"]))
+
         pygame.draw.rect(
             screen,
             (90,0,0),
@@ -411,13 +469,26 @@ while utils.running:
                 max_hp = 150
             case "boss":
                 max_hp = 300
-
+            case "fast":
+                max_hp = 60
             case _:
                 max_hp = 100
         pygame.draw.rect(
                 screen,
-                utils.get_color_hp(z["hp"],max_hp),
+                utils.get_color_hp(z["hp"],z["max_hp"]),
                 (z["x"], z["y"] + z["height"] + 5, z["width"] * z["hp"] / max_hp, 5), border_radius=5)
+
+        for z2 in zombies_data.zombies[:]:
+            dx = z2["x"] - z["x"]
+            dy = z2["y"] - z["y"]
+            distance = (dx * dx + dy * dy) ** 0.5
+            if z["zombie_role"] == "healer" and time.time() - z["last_heal_time"] > 0.2:
+                if distance <= z["radius_heal"]:
+                    pygame.draw.line(screen, (40, 189, 84),
+                                (z["x"] + z["width"]//2, z["y"] + z["height"]//2),
+                                (z2["x"] + z2["width"]//2, z2["y"] + z2["height"]//2), 2)
+                    z2["hp"] += 5 if z2["hp"] < z2["max_hp"] else 0
+                    z["last_heal_time"] = time.time()
 
 
     for g in player.gun:

@@ -12,6 +12,7 @@ wave_size = 1
 difficulty_level_wave = 0
 nb_zombies = 0
 zombies = []
+radius_heal = 0
 
 def zombie_create():
     global zombies
@@ -22,7 +23,7 @@ def zombie_create():
     global difficulty_level_wave
     global nb_zombies
     # new wave
-    utils.spawn_delay = max(0.02, 0.2 / (wave_size ** 0.7))
+    utils.spawn_delay = max(0.08, 0.2 / (wave_size ** 0.15)) + ((wave_size * 7) % 3-1) /10
     if len(zombies) == 0 and zombies_to_spawn == 0:
         zombies_to_spawn = wave_size
         print(f"[DEBUG] Nouvelle vague : {wave_size} zombies")
