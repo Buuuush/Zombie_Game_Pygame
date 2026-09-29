@@ -37,38 +37,46 @@ bonus = [1,zombies_before_bonus[0]]
 
 # //* ===== Game variables =====
 
-
-def shoot(sprite_height):
+def shoot(sprite_height, reload_time):
     global time_from_last_bullet
     global delay_bullet
     global current_damage
     global current_weapon
     global bullet
 
-    if time.time() - time_from_last_bullet > delay_bullet:
-        time_from_last_bullet = time.time()
-        bullet_x = utils.xsprite
-        if current_weapon == 5:
-            bullet.append({
-                "frame": 0,
-                "x": bullet_x,
-                "y": utils.HEIGHT - sprite_height,
-                "anim_time": 0,
-                "damage": current_damage,
-                "weapon": current_weapon,
-                "hit_zombies": [],
-                "ttl": utils.FLAMETHROWER_TTL
-            })
-        else:
-            bullet.append({
-                "frame": 0,
-                "x": bullet_x,
-                "y": utils.HEIGHT - sprite_height,
-                "anim_time": 0,
-                "damage": current_damage,
-                "weapon": current_weapon,
-                "hit_zombies": []
-            })
+    if utils.ammo != 0 or current_weapon == 0:
+        if time.time() - time_from_last_bullet > delay_bullet:
+            time_from_last_bullet = time.time()
+            bullet_x = utils.xsprite
+            if current_weapon == 6:
+                bullet.append({
+                    "frame": 0,
+                    "x": bullet_x,
+                    "y": utils.HEIGHT - sprite_height,
+                    "anim_time": 0,
+                    "damage": current_damage,
+                    "weapon": current_weapon,
+                    "hit_zombies": [],
+                    "ttl": utils.FLAMETHROWER_TTL
+                })
+            else:
+                bullet.append({
+                    "frame": 0,
+                    "x": bullet_x,
+                    "y": utils.HEIGHT - sprite_height,
+                    "anim_time": 0,
+                    "damage": current_damage,
+                    "weapon": current_weapon,
+                    "hit_zombies": []
+                })
+            if current_weapon != 0:
+                utils.ammo -= 1
+    else:
+        if not utils.current_reload:
+            utils.current_reload = True
+            utils.reload_start_time = time.time()
+            return 1
+
 
 def check_bonus():
     global bonus

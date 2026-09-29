@@ -110,6 +110,7 @@ grenade_launcher_frames = split_frames(pygame.transform.scale_by(pygame.image.lo
 sniper_frames = split_frames(pygame.transform.scale_by(pygame.image.load(os.path.join('guns', 'sniper_anim.png')), (0.2)).convert_alpha())
 
 gun_anim = [
+    [],
     m16_frames,
     m249_frames,
     rpg_frames,

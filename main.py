@@ -8,13 +8,12 @@ The game ends when a zombie reaches the bottom of the screen."""
 Functionnalities
 
 Easy
-1. Add highscore in crypted file  DONE
-2. Combo score (fast kill some zombies = score *2 *3 etc) DONE
-3. Differents zombies have differents stats
-4. Set guns more realistics 
+1. Combo score (fast kill some zombies = score *2 *3 etc) DONE
+2. Differents zombies have differents stats DONE
+3. Set guns more realistics (add ammunition)
 
 Medium
-1. Add some special zombies : runner (low hp but fast speed), tank (low speed, high hp, explosion on death), healer (heal nearby zombies)
+1. Add some special zombies : runner (low hp but fast speed), tank (low speed, high hp, explosion on death), healer (heal nearby zombies) DONE
 
 Hard
 1. progressive level : more zombies, more hp, faster
@@ -51,15 +50,16 @@ with open("config/config.json") as f:
     weapon_data = json.load(f)
 
 """Index gun :
-0: M16
-1: M249
-2: RPG
-3: Plasma gun
-4: AK-47
-5: Flamethrower
-6: Freeze gun
-7: Grenade launcher
-8: Sniper
+0: Default gun
+1: M16
+2: M249
+3: RPG
+4: Plasma gun
+5: AK-47
+6: Flamethrower
+7: Freeze gun
+8: Grenade launcher
+9: Sniper
 """
 
 #//* Run functions
@@ -87,16 +87,18 @@ def restart():
     utils.ice_bullets = False
     utils.burning_bullets = False
     utils.piercing_bullets = False
-    player.current_damage = weapon_data["0"]["current_damage"]
-    player.delay_bullet = weapon_data["0"]["delay_bullet"]
+    player.current_damage = weapon_data[str(player.current_weapon)]["current_damage"]
+    player.delay_bullet = weapon_data[str(player.current_weapon)]["delay_bullet"]
     assets.bulletimages = assets.bulletimages_small
-    utils.radius_explosion = 0
-    utils.burn_damage = 0
-    utils.burnt_time = 0
-    utils.slow_factor = 1
-    utils.slow_time = 0
+    utils.radius_explosion = weapon_data[str(player.current_weapon)]["radius_explosion"]
+    utils.burn_damage = weapon_data[str(player.current_weapon)]["burn_damage"]
+    utils.burnt_time = weapon_data[str(player.current_weapon)]["burnt_time"]
+    utils.slow_factor = weapon_data[str(player.current_weapon)]["slow_factor"]
+    utils.slow_time = weapon_data[str(player.current_weapon)]["slow_time"]
     player.score = 0
     utils.score_text = utils.font.render(f"Score: {player.score:.1f}", True, "white")
+    utils.ammo = weapon_data[str(player.current_weapon)]["ammo"]
+    utils.reload_time = weapon_data[str(player.current_weapon)]["reload_time"]
 
 while utils.running:
     # limits FPS to 60
@@ -157,28 +159,12 @@ while utils.running:
                 "boss": True,
                 "burn_time": 0,
                 "slow_time": 0,
-                "zombie_role": "boss"
+                "zombie_role": "boss",
+                "max_hp": 300,
+                "last_healed": time.time()
             })
         else:
             match r_type:
-                case 1:
-                    zombies_data.zombies.append({
-                        "frame": 0,
-                        "x": x,
-                        "y": 0,
-                        "anim_time": 0,
-                        "type": r_type,
-                        "width": assets.zombies_img[r_type * 2].get_width(),
-                        "height": assets.zombies_img[r_type * 2].get_height(),
-                        "hp": 100,
-                        "boss": False,
-                        "burn_time": 0,
-                        "slow_time": 0,
-                        "zombie_role": "healer",
-                        "radius_heal": 100,
-                        "last_heal_time": time.time(),
-                        "max_hp": 100
-                    })
                 case 2:
                     zombies_data.zombies.append({
                         "frame": 0,
@@ -193,7 +179,8 @@ while utils.running:
                         "burn_time": 0,
                         "slow_time": 0,
                         "zombie_role": "hp",
-                        "max_hp": 150
+                        "max_hp": 150,
+                        "last_healed": time.time()
                     })
                 case 5:
                     zombies_data.zombies.append({
@@ -209,7 +196,8 @@ while utils.running:
                         "burn_time": 0,
                         "slow_time": 0,
                         "zombie_role": "fast",
-                        "max_hp": 60
+                        "max_hp": 60,
+                        "last_healed": time.time()
                     })
                 case _:
                     zombies_data.zombies.append({
@@ -224,8 +212,11 @@ while utils.running:
                         "boss": False,
                         "burn_time": 0,
                         "slow_time": 0,
-                        "zombie_role": "basic",
-                        "max_hp": 100
+                        "zombie_role": "healer" if r_type == 1 else "basic",
+                        "max_hp": 100,
+                        "last_healed": time.time(),
+                        "radius_heal": 60 if r_type == 1 else 0
+
                     })
         zombies_data.nb_zombies += 1
         zombies_data.zombies_to_spawn -= 1
@@ -325,7 +316,7 @@ while utils.running:
                 g["anim_time"] = 0
 
     if time.time() >= player.next_gun_spawn:
-        r_type = random.randint(0, len(assets.gun_anim) - 1)
+        r_type = random.randint(1, len(assets.gun_anim) - 1)
         player.gun.append({
             "frame": 0,
             "x": WIDTH - assets.gun_anim[r_type][0].get_width() - 10,
@@ -350,26 +341,57 @@ while utils.running:
         else:
             utils.xsprite += 300 * dt
 
+    if keys[pygame.K_r] and not utils.current_reload and player.current_weapon != 0:
+            utils.ammo = 0
+            utils.current_reload = True
+            utils.reload_start_time = time.time()
+
     if keys[pygame.K_SPACE]:
-        player.shoot(sprite.get_height())
+        player.shoot(sprite.get_height(), utils.reload_time)
+    
+    if utils.current_reload:
+        temps_ecoule = time.time() - utils.reload_start_time
+        if temps_ecoule >= utils.reload_time:
+            utils.ammo = weapon_data[str(player.current_weapon)]["ammo"]
+            utils.current_reload = False
+        progress = min(temps_ecoule / utils.reload_time, 1)
+        player_x = utils.xsprite
+        player_y = HEIGHT - sprite.get_height()
+        player_w = sprite.get_width()
+        player_h = sprite.get_height()
+
+        # Fond noir de la barre
+        pygame.draw.rect(
+            screen,
+            (0, 0, 0),
+            (player_x, player_y - 10, player_w, 5),
+            border_radius=5
+        )
+        # Alerte rouge sous le joueur
+        pygame.draw.rect(
+            screen,
+            utils.get_color_reload(progress),
+            (player_x, player_y - 10, player_w * progress, 5),
+            border_radius=5
+        )
 
     for b in player.bullet[:]:
-        b["y"] -= 750 * dt if b["weapon"] == 3 else 500 * dt
+        b["y"] -= 750 * dt if b["weapon"] == 4 else 500 * dt
         b["anim_time"] += dt
         match b["weapon"]:
-            case 3:
+            case 4:
                 if b["anim_time"] >= 0.08:
                     b["frame"] += 1
                     b["anim_time"] = 0
                 if b["frame"] >= 4:
                     b["frame"] = 0
-            case 8:
+            case 9:
                 if b["anim_time"] >= 0.1:
                     b["frame"] += 1
                     b["anim_time"] = 0
                 if b["frame"] >= len(assets.bulletimages):
                     b["frame"] = 0
-            case 5:
+            case 6:
                 if b["anim_time"] >= 0.05:
                     b["frame"] += 1
                     b["anim_time"] = 0
@@ -408,12 +430,12 @@ while utils.running:
 
     screen.blit(sprite, (utils.xsprite, HEIGHT - sprite.get_height()))
     for b in player.bullet:
-        if b["weapon"] == 3:
+        if b["weapon"] == 4: 
             frame = assets.bulletimages_plasma[b["frame"]]
             screen.blit(frame["top"],(b["x"], b["y"]))
             screen.blit(frame["middle"],(b["x"], b["y"] + frame["top"].get_height()))
             screen.blit(frame["bottom"],(b["x"],b["y"] + frame["top"].get_height() + frame["middle"].get_height()))
-        elif b["weapon"] == 5:
+        elif b["weapon"] == 6: 
             screen.blit(assets.flame[b["frame"] % len(assets.flame)],(b["x"], b["y"]))
         else:
             screen.blit(assets.bulletimages[b["frame"]],(b["x"], b["y"]))
@@ -464,32 +486,23 @@ while utils.running:
             (90,0,0),
             (z["x"], z["y"] + z["height"] + 5, z["width"], 5), border_radius=5)
         
-        match z["zombie_role"]:
-            case "hp": 
-                max_hp = 150
-            case "boss":
-                max_hp = 300
-            case "fast":
-                max_hp = 60
-            case _:
-                max_hp = 100
+
         pygame.draw.rect(
                 screen,
                 utils.get_color_hp(z["hp"],z["max_hp"]),
-                (z["x"], z["y"] + z["height"] + 5, z["width"] * z["hp"] / max_hp, 5), border_radius=5)
+                (z["x"], z["y"] + z["height"] + 5, z["width"] * z["hp"] / z["max_hp"], 5), border_radius=5)
 
         for z2 in zombies_data.zombies[:]:
             dx = z2["x"] - z["x"]
             dy = z2["y"] - z["y"]
             distance = (dx * dx + dy * dy) ** 0.5
-            if z["zombie_role"] == "healer" and time.time() - z["last_heal_time"] > 0.2:
-                if distance <= z["radius_heal"]:
-                    pygame.draw.line(screen, (40, 189, 84),
-                                (z["x"] + z["width"]//2, z["y"] + z["height"]//2),
-                                (z2["x"] + z2["width"]//2, z2["y"] + z2["height"]//2), 2)
+            if z["zombie_role"] == "healer" and distance <= z["radius_heal"]:
+                if time.time() - z2["last_healed"] > 0.2:
                     z2["hp"] += 5 if z2["hp"] < z2["max_hp"] else 0
-                    z["last_heal_time"] = time.time()
-
+                    z2["last_healed"] = time.time()
+                pygame.draw.line(screen, (0, 255, 79),
+                    (z["x"] + z["width"]//2, z["y"] + z["height"]//2),
+                    (z2["x"] + z2["width"]//2, z2["y"] + z2["height"]//2), 2)
 
     for g in player.gun:
         screen.blit(assets.gun_anim[g["type"]][g["frame"]],(g["x"], g["y"]))
@@ -500,7 +513,7 @@ while utils.running:
     if player.bullet and zombies_data.zombies:
         for b in player.bullet[:]:
             for z in zombies_data.zombies[:]:
-                if b["weapon"] == 3:
+                if b["weapon"] == 4: 
                     frame = assets.bulletimages_plasma[b["frame"]]
 
                     width = frame["middle"].get_width()
@@ -511,7 +524,7 @@ while utils.running:
                         + frame["bottom"].get_height()
                     )
 
-                elif b["weapon"] == 5:
+                elif b["weapon"] == 6: 
                     width = assets.flame[b["frame"]].get_width()
                     height = assets.flame[b["frame"]].get_height()
 
@@ -524,14 +537,14 @@ while utils.running:
                 zombie_rect = pygame.Rect(z["x"], z["y"], z["width"], z["height"])
                 if bullet_rect.colliderect(zombie_rect):
                     try:
-                        if b["weapon"] == 8:
+                        if b["weapon"] == 9:
                             if z in b["hit_zombies"]:
                                 continue
                             b["hit_zombies"].append(z)
                         z["hp"] -= b["damage"]
-                        if b["weapon"] == 6:
+                        if b["weapon"] == 7:
                             z["slow_time"] = utils.slow_time
-                        if b["weapon"] == 5:
+                        if b["weapon"] == 6:
                             if b["ttl"] > 0:
                                 z["burn_time"] = utils.burnt_time
                                 b["ttl"] -= 1
@@ -539,7 +552,7 @@ while utils.running:
                                 player.bullet.remove(b)
                                 continue
                         
-                        if b["weapon"] in [2,7]:
+                        if b["weapon"] in [3,8]:
                             explosion_x = z["x"]
                             explosion_y = z["y"]
                             assets.explosions.append({
@@ -574,7 +587,7 @@ while utils.running:
                                 player.score += 1 * player.bonus[0]
                             zombies_data.zombies.remove(z)
                             continue 
-                        if b["weapon"] not in [5,8]:
+                        if b["weapon"] not in [6,9]:
                             player.bullet.remove(b)
                             
                     except ValueError:
@@ -608,6 +621,8 @@ while utils.running:
                 utils.ice_bullets = cfg["ice_bullet"]
                 utils.slow_factor = cfg["slow_factor"]
                 utils.slow_time = cfg["slow_time"]
+                utils.ammo = cfg["ammo"]
+                utils.reload_time = cfg["reload_time"]
                 print(f"[DEBUG] Le joueur a ramassé une arme (type = {g['type']})")
 
     for fl in assets.flames:
@@ -620,6 +635,9 @@ while utils.running:
     if player.score:
         utils.score_text = utils.font.render(f"Score: {player.score:.1f}           Bonus : x{player.bonus[0]}", True, "white") if player.bonus[0] >1 else utils.font.render(f"Score: {player.score:.1f}", True, "white")
     screen.blit(utils.score_text, (10, 10))
+    utils.ammo_text = pygame.font.Font(None, 25).render(f"Ammo:\n{utils.ammo}", True, "white") if player.current_weapon != 0 else pygame.font.Font(None, 25).render(f"Ammo:\nInfinity", True, "white")
+    screen.blit(utils.ammo_text, (320, 10))
+
 
     # flip() the display to put your work on screen
     pygame.display.flip()

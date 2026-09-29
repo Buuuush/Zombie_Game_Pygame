@@ -1,5 +1,20 @@
 {
   "0": {
+    "current_damage": 15,
+    "delay_bullet": 0.18,
+    "bulletimage": "bulletimages_small",
+    "radius_explosion": 0,
+    "burning_bullets": false,
+    "burn_damage": 0,
+    "burnt_time": 0,
+    "piercing_bullet": false,
+    "ice_bullet": false,
+    "slow_factor": 1,
+    "slow_time": 0,
+    "ammo": -1,
+    "reload_time": 0.0
+  },
+  "1": {
     "current_damage": 22,
     "delay_bullet": 0.16,
     "bulletimage": "bulletimages_small",
@@ -10,9 +25,11 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 30,
+    "reload_time": 1.5
   },
-  "1": {
+  "2": {
     "current_damage": 14,
     "delay_bullet": 0.07,
     "bulletimage": "bulletimages_small",
@@ -23,10 +40,12 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 100,
+    "reload_time": 2.5
   },
-  "2": {
-    "current_damage": 95,
+  "3": {
+    "current_damage": 130,
     "delay_bullet": 1.4,
     "bulletimage": "bulletimages_large",
     "radius_explosion": 120,
@@ -36,11 +55,13 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 3,
+    "reload_time": 3.0
   },
-  "3": {
-    "current_damage": 35,
-    "delay_bullet": 0.32,
+  "4": {
+    "current_damage": 50,
+    "delay_bullet": 0.28,
     "bulletimage": "",
     "radius_explosion": 0,
     "burning_bullets": false,
@@ -49,9 +70,11 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 20,
+    "reload_time": 2.0
   },
-  "4": {
+  "5": {
     "current_damage": 20,
     "delay_bullet": 0.11,
     "bulletimage": "bulletimages_small",
@@ -62,22 +85,26 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 40,
+    "reload_time": 2.0
   },
-  "5": {
+  "6": {
     "current_damage": 2,
     "delay_bullet": 0.05,
     "bulletimage": "bulletimages_large",
     "radius_explosion": 0,
     "burning_bullets": true,
-    "burn_damage": 10,
-    "burnt_time": 3,
+    "burn_damage": 5,
+    "burnt_time": 4,
     "piercing_bullet": true,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 150,
+    "reload_time": 3.0
   },
-  "6": {
+  "7": {
     "current_damage": 16,
     "delay_bullet": 0.1,
     "bulletimage": "bulletimages_medium",
@@ -88,10 +115,12 @@
     "piercing_bullet": false,
     "ice_bullet": true,
     "slow_factor": 0.5,
-    "slow_time": 2
+    "slow_time": 2,
+    "ammo": 40,
+    "reload_time": 2.5
   },
-  "7": {
-    "current_damage": 65,
+  "8": {
+    "current_damage": 90,
     "delay_bullet": 0.65,
     "bulletimage": "bulletimages_large",
     "radius_explosion": 90,
@@ -101,9 +130,11 @@
     "piercing_bullet": false,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 6,
+    "reload_time": 3.0
   },
-  "8": {
+  "9": {
     "current_damage": 300,
     "delay_bullet": 1.2,
     "bulletimage": "bulletimages_medium",
@@ -114,6 +145,8 @@
     "piercing_bullet": true,
     "ice_bullet": false,
     "slow_factor": 1,
-    "slow_time": 0
+    "slow_time": 0,
+    "ammo": 10,
+    "reload_time": 2.5
   }
 }
