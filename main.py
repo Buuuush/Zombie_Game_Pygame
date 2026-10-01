@@ -286,6 +286,8 @@ while utils.running:
                             HEIGHT // 3 - 20 + i * 30
                         )
                     )
+
+                assets.blood_particle_list = []
                 
                 pygame.display.flip()
                 player.score = 0
