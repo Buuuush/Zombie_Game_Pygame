@@ -1,5 +1,6 @@
 import os
 import pygame
+import time
 
 skin1 = pygame.transform.scale_by(pygame.image.load(os.path.join('player', 'img1.png')), (0.125))
 skin2 = pygame.transform.scale_by(pygame.image.load(os.path.join('player', 'img2.png')), (0.125))
@@ -22,38 +23,7 @@ bulletimages_large = [
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet3.png')), (0.2)),
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet4.png')), (0.2))
 ]
-"""
-bas1    |  bas2    |  bas3      |  bas4
-milieu1 |  milieu2 |  milieu3   |  milieu4
-haut1b |  haut2    |  haut3     |  haut4
-"""
-bulletimages_plasma = []
 
-for i in range(1, 5):
-    bulletimages_plasma.append({
-        "top": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Haut_{i}.png").convert_alpha(), (0.2)),
-        "middle": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Milieu_{i}.png").convert_alpha(), (0.2)),
-        "bottom": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Bas_{i}.png").convert_alpha(), (0.2))
-    })
-
-bulletimages = bulletimages_small
-
-zombies_img = [
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie1_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie1_2.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie2_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie2_2.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie3_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie3_2.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie4_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie4_2.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie5_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie5_2.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie6_1.png')), (0.25)),
-    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie6_2.png')), (0.25))
-]
-
-# Progressive spawn
 def split_frames(surface):
     frames = []
     start_x = None
@@ -91,6 +61,52 @@ def split_frames(surface):
         frames.append(frame.copy())
     return frames
 
+
+"""
+bas1    |  bas2    |  bas3      |  bas4
+milieu1 |  milieu2 |  milieu3   |  milieu4
+haut1b |  haut2    |  haut3     |  haut4
+"""
+bulletimages_plasma = []
+
+for i in range(1, 5):
+    bulletimages_plasma.append({
+        "top": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Haut_{i}.png").convert_alpha(), (0.2)),
+        "middle": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Milieu_{i}.png").convert_alpha(), (0.2)),
+        "bottom": pygame.transform.scale_by(pygame.image.load(f"guns/plasma/Bas_{i}.png").convert_alpha(), (0.2))
+    })
+
+bulletimages = bulletimages_small
+
+zombies_img = [
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie1_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie1_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie2_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie2_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie3_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie3_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie4_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie4_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie5_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie5_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie6_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'zombie6_2.png')), (0.25))
+]
+
+blood_particle = [
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles','blood_0.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_1.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_2.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_3.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_4.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_5.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_6.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_7.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_8.png')), (0.25)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('zombie', 'Blood_Particles', 'blood_9.png')), (0.25)),
+]
+blood_particle_list =[]
+
 #//* Gun images
 # explosion of the rpg, when the bullet collides with a zombie, the explosion is animated and then disappears
 explosion = split_frames(pygame.transform.scale_by(pygame.image.load(os.path.join('guns', 'explosion.png')), (1)).convert_alpha())
@@ -121,3 +137,15 @@ gun_anim = [
     grenade_launcher_frames,
     sniper_frames
 ]
+
+
+animation_frame = []
+def blood_animation(screen,x ,y):
+    global blood_particles
+    
+    current_particle = blood_particles[int(animation_frame)]
+    screen.blit(current_particle, (x, y))
+
+    animation_frame += 0.5
+    if animation_frame >= len(blood_particles):
+        animation_frame = 0

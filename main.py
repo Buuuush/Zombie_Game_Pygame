@@ -10,7 +10,7 @@ Functionnalities
 Easy
 1. Combo score (fast kill some zombies = score *2 *3 etc) DONE
 2. Differents zombies have differents stats DONE
-3. Set guns more realistics (add ammunition)
+3. Set guns more realistics (add ammunition) DONE
 
 Medium
 1. Add some special zombies : runner (low hp but fast speed), tank (low speed, high hp, explosion on death), healer (heal nearby zombies) DONE
@@ -71,6 +71,7 @@ def restart():
     player.bullet = []
     player.gun = []
     assets.explosions = []
+    assets.blood_particle_list = []
     assets.flames = []
     player.score = 0
     utils.xsprite = WIDTH / 2
@@ -134,6 +135,18 @@ while utils.running:
     elif 20 > player.img_player > 10:
         sprite = assets.skin2
 
+    if assets.blood_particle_list:
+        for blood in assets.blood_particle_list[:]:
+            blood["anim_time"] += dt
+            if blood["anim_time"] >= 0.03:
+                blood["frame"] += 1
+                blood["anim_time"] = 0
+            if blood["frame"] >= len(assets.blood_particle):
+                assets.blood_particle_list.remove(blood)
+
+    for blood in assets.blood_particle_list:
+        screen.blit(assets.blood_particle[blood["frame"]], (blood["x"]-75, blood["y"]))
+    
     # spawn zombies at the top of the screen and they have the same time btw switching images
     if time.time() - zombies_data.last_spawn > 0.3:
         zombies_data.last_spawn = time.time()
@@ -404,7 +417,8 @@ while utils.running:
                 if b["frame"] >= len(assets.bulletimages):
                     b["frame"] = 0
         if b["y"] < 0:
-            player.bullet.remove(b)
+            if b in player.bullet:
+                player.bullet.remove(b)
 
     if assets.explosions:
         for exp in assets.explosions[:]:
@@ -513,6 +527,8 @@ while utils.running:
     if player.bullet and zombies_data.zombies:
         for b in player.bullet[:]:
             for z in zombies_data.zombies[:]:
+                if b not in player.bullet:
+                    break
                 if b["weapon"] == 4: 
                     frame = assets.bulletimages_plasma[b["frame"]]
 
@@ -541,7 +557,7 @@ while utils.running:
                             if z in b["hit_zombies"]:
                                 continue
                             b["hit_zombies"].append(z)
-                        z["hp"] -= b["damage"]
+
                         if b["weapon"] == 7:
                             z["slow_time"] = utils.slow_time
                         if b["weapon"] == 6:
@@ -549,8 +565,9 @@ while utils.running:
                                 z["burn_time"] = utils.burnt_time
                                 b["ttl"] -= 1
                             else:
-                                player.bullet.remove(b)
-                                continue
+                                if b in player.bullet:
+                                    player.bullet.remove(b)
+                                    continue
                         
                         if b["weapon"] in [3,8]:
                             explosion_x = z["x"]
@@ -567,6 +584,12 @@ while utils.running:
                                 distance = (dx * dx + dy * dy) ** 0.5
                                 if distance <= utils.radius_explosion:
                                     z2["hp"] -= b["damage"]
+                                    assets.blood_particle_list.append({
+                                        "x": z["x"],
+                                        "y": z["y"],
+                                        "frame": 0,
+                                        "anim_time": 0
+                                    })
                                     if z2["hp"] <= 0:
                                         player.check_bonus()
                                         if z2["boss"]:
@@ -578,6 +601,14 @@ while utils.running:
                             if b in player.bullet:
                                 player.bullet.remove(b)
                             continue
+                        z["hp"] -= b["damage"]
+                        assets.blood_particle_list.append({
+                            "x": z["x"],
+                            "y": z["y"],
+                            "frame": 0,
+                            "anim_time": 0
+                        })
+                        
 
                         if z["hp"] <= 0:
                             player.check_bonus()
@@ -588,11 +619,14 @@ while utils.running:
                             zombies_data.zombies.remove(z)
                             continue 
                         if b["weapon"] not in [6,9]:
-                            player.bullet.remove(b)
+                            if b in player.bullet:
+                                player.bullet.remove(b)
                             
                     except ValueError:
                         pass
-                            
+
+
+
     # if gun collides with player, the player get the gun and it despawn
     if player.gun:
         for g in player.gun[:]:
