@@ -28,6 +28,7 @@ fps = 0
 font = pygame.font.Font(None, 36)
 score_text = font.render("Score: 0", True, "white")
 ammo_text = font.render("Ammo: 0", True, "white")
+weapon_text = font.render("Basic gun", True, "white")
 pause = False
 running = True
 
