@@ -672,8 +672,9 @@ while utils.running:
         utils.score_text = utils.font.render(f"Score: {player.score:.1f}           Bonus : x{player.bonus[0]}", True, "white") if player.bonus[0] >1 else utils.font.render(f"Score: {player.score:.1f}", True, "white")
     screen.blit(utils.score_text, (10, 10))
     utils.ammo_text = pygame.font.Font(None, 25).render(f"Ammo:\n{utils.ammo}", True, "white") if player.current_weapon != 0 else pygame.font.Font(None, 25).render(f"Ammo:\nInfinity", True, "white")
-    screen.blit(utils.ammo_text, (320, 10))
-
+    screen.blit(utils.ammo_text, (320, 30))
+    utils.weapon_text = pygame.font.Font(None, 25).render(weapon_data[player.current_weapon]["name"])
+    screen.blit(utils.weapon_text, (320,10))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
