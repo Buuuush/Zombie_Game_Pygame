@@ -177,7 +177,7 @@ pip install pygame neocitizen
 
 Planned features include:
 
-- [x] More maintenable code (don't look at the old code ^^)
+- [x] More maintenable code
 - [ ] Sound effects
 - [ ] Background music
 - [x] Additional zombie classes (runner, tank, healer)

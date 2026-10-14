@@ -17,6 +17,15 @@ bulletimages_medium = [
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet3.png')), (0.1)),
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet4.png')), (0.1))
 ]
+
+bulletimages_freeze = [
+    pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet1_f.png')), (0.1)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet2_f.png')), (0.1)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet3_f.png')), (0.1)),
+    pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet4_f.png')), (0.1))
+]
+
+
 bulletimages_large = [
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet1.png')), (0.2)),
     pygame.transform.scale_by(pygame.image.load(os.path.join('bullet', 'bullet2.png')), (0.2)),

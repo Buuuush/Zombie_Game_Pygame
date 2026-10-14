@@ -13,7 +13,7 @@ Easy
 3. Set guns more realistics (add ammunition) DONE
 
 Medium
-1. Add some special zombies : runner (low hp but fast speed), tank (low speed, high hp, explosion on death), healer (heal nearby zombies) DONE
+1. Add some special zombies : runner (low hp but fast speed), tank (low speed, high hp), healer (heal nearby zombies) DONE
 
 Hard
 1. progressive level : more zombies, more hp, faster
@@ -159,78 +159,68 @@ while utils.running:
             0,
             WIDTH - assets.zombies_img[r_type * 2].get_width() - WIDTH // 5
         )
-        if zombies_data.nb_zombies % 50 == 0 and zombies_data.nb_zombies != 0:
-            zombies_data.zombies.append({
-                "frame": 0,
-                "x": x,
-                "y": 0,
-                "anim_time": 0,
-                "type": r_type,
-                "width": assets.zombies_img[r_type * 2].get_width() * 2,
-                "height": assets.zombies_img[r_type * 2].get_height() * 2,
-                "hp": 300,
-                "boss": True,
-                "burn_time": 0,
-                "slow_time": 0,
-                "zombie_role": "boss",
-                "max_hp": 300,
-                "last_healed": time.time()
-            })
-        else:
-            match r_type:
-                case 2:
-                    zombies_data.zombies.append({
-                        "frame": 0,
-                        "x": x,
-                        "y": 0,
-                        "anim_time": 0,
-                        "type": r_type,
-                        "width": assets.zombies_img[r_type * 2].get_width(),
-                        "height": assets.zombies_img[r_type * 2].get_height(),
-                        "hp": 150,
-                        "boss": False,
-                        "burn_time": 0,
-                        "slow_time": 0,
-                        "zombie_role": "hp",
-                        "max_hp": 150,
-                        "last_healed": time.time()
-                    })
-                case 5:
-                    zombies_data.zombies.append({
-                        "frame": 0,
-                        "x": x,
-                        "y": 0,
-                        "anim_time": 0,
-                        "type": r_type,
-                        "width": assets.zombies_img[r_type * 2].get_width(),
-                        "height": assets.zombies_img[r_type * 2].get_height(),
-                        "hp": 60,
-                        "boss": False,
-                        "burn_time": 0,
-                        "slow_time": 0,
-                        "zombie_role": "fast",
-                        "max_hp": 60,
-                        "last_healed": time.time()
-                    })
-                case _:
-                    zombies_data.zombies.append({
-                        "frame": 0,
-                        "x": x,
-                        "y": 0,
-                        "anim_time": 0,
-                        "type": r_type,
-                        "width": assets.zombies_img[r_type * 2].get_width(),
-                        "height": assets.zombies_img[r_type * 2].get_height(),
-                        "hp": 100,
-                        "boss": False,
-                        "burn_time": 0,
-                        "slow_time": 0,
-                        "zombie_role": "healer" if r_type == 1 else "basic",
-                        "max_hp": 100,
-                        "last_healed": time.time(),
-                        "radius_heal": 60 if r_type == 1 else 0
+        match r_type:
+            case 2:
+                zombies_data.zombies.append({
+                    "frame": 0,
+                    "x": x,
+                    "y": 0,
+                    "anim_time": 0,
+                    "type": r_type,
+                    "width": assets.zombies_img[r_type * 2].get_width(),
+                    "height": assets.zombies_img[r_type * 2].get_height(),
+                    "hp": 150,
+                    "boss": False,
+                    "burn_time": 0,
+                    "slow_time": 0,
+                    "zombie_role": "hp",
+                    "max_hp": 150,
+                    "last_healed": time.time()
+                })
+            case 5:
+                zombies_data.zombies.append({
+                    "frame": 0,
+                    "x": x,
+                    "y": 0,
+                    "anim_time": 0,
+                    "type": r_type,
+                    "width": assets.zombies_img[r_type * 2].get_width(),
+                    "height": assets.zombies_img[r_type * 2].get_height(),
+                    "hp": 60,
+                    "boss": False,
+                    "burn_time": 0,
+                    "slow_time": 0,
+                    "zombie_role": "fast",
+                    "max_hp": 60,
+                    "last_healed": time.time()
+                })
+            case _:
+                zombies_data.zombies.append({
+                    "frame": 0,
+                    "x": x,
+                    "y": 0,
+                    "anim_time": 0,
+                    "type": r_type,
+                    "width": assets.zombies_img[r_type * 2].get_width(),
+                    "height": assets.zombies_img[r_type * 2].get_height(),
+                    "hp": 100,
+                    "boss": False,
+                    "burn_time": 0,
+                    "slow_time": 0,
+                    "zombie_role": "healer" if r_type == 1 else "basic",
+                    "max_hp": 100,
+                    "last_healed": time.time(),
+                    "radius_heal": 60 if r_type == 1 else 0
 
-                    })
+                })
+        if zombies_data.nb_zombies % 50 == 0 and zombies_data.nb_zombies != 0:
+            zombies_data.zombies[-1]["width"] *= 2
+            zombies_data.zombies[-1]["height"] *= 2
+            zombies_data.zombies[-1]["max_hp"] = 300 if r_type != 2 else 350
+            zombies_data.zombies[-1]["hp"] = zombies_data.zombies[-1]["max_hp"]
+            zombies_data.zombies[-1]["boss"] = True
+
+
         zombies_data.nb_zombies += 1
         zombies_data.zombies_to_spawn -= 1
 
@@ -369,7 +359,10 @@ while utils.running:
         if temps_ecoule >= utils.reload_time:
             utils.ammo = weapon_data[str(player.current_weapon)]["ammo"]
             utils.current_reload = False
-        progress = min(temps_ecoule / utils.reload_time, 1)
+        try:
+            progress = min(temps_ecoule / utils.reload_time, 1)
+        except:
+            pass
         player_x = utils.xsprite
         player_y = HEIGHT - sprite.get_height()
         player_w = sprite.get_width()
@@ -418,8 +411,7 @@ while utils.running:
                     b["anim_time"] = 0
                 if b["frame"] >= len(assets.bulletimages):
                     b["frame"] = 0
-        if b["y"] < 0:
-            if b in player.bullet:
+        if b["y"] < 0 and b in player.bullet:
                 player.bullet.remove(b)
 
     if assets.explosions:
@@ -511,10 +503,13 @@ while utils.running:
         for z2 in zombies_data.zombies[:]:
             dx = z2["x"] - z["x"]
             dy = z2["y"] - z["y"]
-            distance = (dx * dx + dy * dy) ** 0.5
-            if z["zombie_role"] == "healer" and distance <= z["radius_heal"]:
+            distance_squared = dx * dx + dy * dy
+            if z["zombie_role"] == "healer" and distance_squared <= (z["radius_heal"] ** 2):
                 if time.time() - z2["last_healed"] > 0.2:
-                    z2["hp"] += 5 if z2["hp"] < z2["max_hp"] else 0
+                    if z["boss"]:
+                        z2["hp"] += 8 if z2["hp"] < z2["max_hp"] else 0
+                    else:
+                        z2["hp"] += 5 if z2["hp"] < z2["max_hp"] else 0
                     z2["last_healed"] = time.time()
                 pygame.draw.line(screen, (0, 255, 79),
                     (z["x"] + z["width"]//2, z["y"] + z["height"]//2),
@@ -619,10 +614,11 @@ while utils.running:
                             else:
                                 player.score += 1 * player.bonus[0]
                             zombies_data.zombies.remove(z)
-                            continue 
-                        if b["weapon"] not in [6,9]:
-                            if b in player.bullet:
+                            if b["weapon"] not in [9] and b in player.bullet:
                                 player.bullet.remove(b)
+                            continue
+                        if b["weapon"] not in [6,9] and b in player.bullet:
+                            player.bullet.remove(b)
                             
                     except ValueError:
                         pass
@@ -646,7 +642,7 @@ while utils.running:
                 if cfg["bulletimage"] == "bulletimages_small":
                     assets.bulletimages = assets.bulletimages_small
                 elif cfg["bulletimage"] == "bulletimages_medium":
-                    assets.bulletimages = assets.bulletimages_medium
+                    assets.bulletimages = assets.bulletimages_medium if weapon_data[str(player.current_weapon)]["name"] != "Freeze gun" else assets.bulletimages_freeze
                 elif cfg["bulletimage"] == "bulletimages_large":
                     assets.bulletimages = assets.bulletimages_large
                 utils.radius_explosion = cfg["radius_explosion"]
@@ -673,7 +669,7 @@ while utils.running:
     screen.blit(utils.score_text, (10, 10))
     utils.ammo_text = pygame.font.Font(None, 25).render(f"Ammo:\n{utils.ammo}", True, "white") if player.current_weapon != 0 else pygame.font.Font(None, 25).render(f"Ammo:\nInfinity", True, "white")
     screen.blit(utils.ammo_text, (320, 30))
-    utils.weapon_text = pygame.font.Font(None, 25).render(weapon_data[player.current_weapon]["name"])
+    utils.weapon_text = pygame.font.Font(None, 25).render(weapon_data[str(player.current_weapon)]["name"], True, "white")
     screen.blit(utils.weapon_text, (320,10))
 
     # flip() the display to put your work on screen
